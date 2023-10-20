@@ -1,10 +1,5 @@
 package main
 
-import (
-	"math/rand"
-	"time"
-)
-
 const (
 	HOST = ""
 	PORT = 8080

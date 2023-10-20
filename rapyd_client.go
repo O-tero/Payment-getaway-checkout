@@ -32,11 +32,11 @@ func NewRapydClient() *RapydClient {
 // It returns the response body (if any) on succes, or an error on failure.
 // The URL path must start with a version number (e.g. "/v1/data/countries").
 func (rc *RapydClient) request(method string, urlPath string, body []byte) ([]byte, error) {
-	// turn the body into an io.reader
+	// turn the body into an io.Reader
 	b := bytes.NewReader(body)
 
-	// Create a request with all headers required for authentication
-	req, err := http.NewRequest(method, BASERAPYDAPIURL + urlPath, b)
+	// create a request with all headers required for authentication.
+	req, err := http.NewRequest(method, BASERAPYDAPIURL+urlPath, b)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create request: %v", err)
 	}
@@ -52,7 +52,7 @@ func (rc *RapydClient) request(method string, urlPath string, body []byte) ([]by
 	req.Header.Set("timestamp", timestamp)
 	req.Header.Set("signature", signature(method, urlPath, salt, timestamp, key, secret, string(body)))
 
-	// run the request and return the body response body.
+	// run the request and return the response body.
 	resp, err := rc.c.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to send request: %v", err)
@@ -63,4 +63,20 @@ func (rc *RapydClient) request(method string, urlPath string, body []byte) ([]by
 		return nil, fmt.Errorf("Failed to read response body: %v", err)
 	}
 	return respBody, nil
+}
+
+// signature creates a string that is calcualted as follows: BASE64 ( HASH ( http_method + url_path + salt + timestamp + access_key + secret_key + body_string ) )
+// urlPath is the path of the request without the base URL but including the API version, e.g., "/v1/data/countries".
+func signature(httpMethod string, urlPath string, salt string, timestamp string, accessKey string, secretKey string, body string) string {
+
+	// create a sha256 HMAC with the secret key
+	hash := hmac.New(sha256.New, []byte(secretKey))
+
+	// sign the request
+	hash.Write([]byte(strings.ToLower(httpMethod) + urlPath + salt + timestamp + accessKey + secretKey + body))
+
+	// get the hex digest of the hash and base64-encode it
+	hexdigest := make([]byte, hex.EncodedLen(hash.Size()))
+	hex.Encode(hexdigest, hash.Sum(nil))
+	return base64.StdEncoding.EncodeToString(hexdigest)
 }
