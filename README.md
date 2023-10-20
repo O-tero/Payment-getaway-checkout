@@ -2,7 +2,9 @@
 
 See a simple checkout workflow in action.
 
-The Go code in this folder implements a purchase flow for woolen socks.
+The Go code implements a purchase flow for woolen socks.
+This means the home page will show the shopping basket right away. The user will be able to select the number of items they want to buy and then head to the checkout. This triggers the app to call the Create Checkout Page endpoint, which will create a new checkout page based on the total price of the items, the user's country, and the currency used.
+Then, Rapyd takes over and handles the checkout until the user either completes or cancels the checkout flow. At that point, the flow is transferred back to the web shop.
 
 ## What do you need to start
 
